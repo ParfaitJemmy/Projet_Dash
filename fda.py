@@ -4,6 +4,7 @@ import pandas as pd
 import plotly.express as px
 import io
 from sklearn.discriminant_analysis import LinearDiscriminantAnalysis as LDA
+from scipy.stats import f_oneway
 import numpy as np
 
 # Stockage global du modèle et des variables explicatives
@@ -30,6 +31,9 @@ def layout():
         html.Div(id='fda-error', className='text-danger mt-2'),
 
         html.Hr(),
+        html.H4("Corrélations et ANOVA"),
+        html.Div(id='correlation-results', className='mb-4'),
+
         html.H4("Simulation et prédiction"),
         html.Div(id='prediction-form'),
         dbc.Button("Prédire", id='predict-btn', color='success', className='mt-2'),
@@ -48,7 +52,7 @@ def register_callbacks(app):
         if data:
             try:
                 df = pd.read_json(io.StringIO(data), orient='split')
-                df = df.dropna(axis=1, how='all')  # Supprimer colonnes vides
+                df = df.dropna(axis=1, how='all')
                 options = [{'label': col, 'value': col} for col in df.columns]
                 return options, options
             except Exception as e:
@@ -66,7 +70,8 @@ def register_callbacks(app):
     @app.callback(
         [Output('fda-plot', 'figure'),
          Output('fda-error', 'children'),
-         Output('prediction-form', 'children')],
+         Output('prediction-form', 'children'),
+         Output('correlation-results', 'children')],
         Input('run-fda', 'n_clicks'),
         State('fda-target-dropdown', 'value'),
         State('fda-features-dropdown', 'value'),
@@ -75,22 +80,18 @@ def register_callbacks(app):
     def run_fda(n, target, features, data):
         global lda_model, fda_features
         if not (n and data and target and features):
-            return px.scatter(title="Sélectionnez une cible et des variables"), "Veuillez compléter les champs.", None
+            return px.scatter(title="Sélectionnez une cible et des variables"), "Veuillez compléter les champs.", None, None
         try:
             df = pd.read_json(io.StringIO(data), orient='split')
             df = df.dropna(axis=1, how='all')
 
-            # Vérification que la variable cible est qualitative
             if not pd.api.types.is_categorical_dtype(df[target]) and df[target].dtype != object:
-                return px.scatter(title="Type invalide"), "🚫 La variable cible doit être qualitative (catégorielle).", None
+                return px.scatter(title="Type invalide"), "🚫 La variable cible doit être qualitative (catégorielle).", None, None
 
-            # Vérification que les variables explicatives sont toutes numériques
             non_numeric = [col for col in features if not pd.api.types.is_numeric_dtype(df[col])]
             if non_numeric:
-                return px.scatter(title="Variables non numériques"), \
-                       f"🚫 Les variables explicatives suivantes ne sont pas numériques : {', '.join(non_numeric)}", None
+                return px.scatter(title="Variables non numériques"), f"🚫 Les variables explicatives suivantes ne sont pas numériques : {', '.join(non_numeric)}", None, None
 
-            # Analyse des valeurs manquantes
             missing_info = ""
             for var in [target] + features:
                 if var in df.columns:
@@ -100,27 +101,22 @@ def register_callbacks(app):
             if missing_info:
                 missing_info = "🚨 Données manquantes détectées :\n" + missing_info
 
-            # Filtrer les lignes valides (sans NaN dans X ou y)
             X = df[features]
             y = df[target]
             valid_index = X.dropna().index.intersection(y.dropna().index)
             X = X.loc[valid_index]
             y = y.loc[valid_index]
 
-            # Vérification du nombre de classes
             if len(y.unique()) < 2:
-                return px.scatter(title="Trop peu de classes"), "⚠️ La variable cible doit comporter au moins deux classes.", None
+                return px.scatter(title="Trop peu de classes"), "⚠️ La variable cible doit comporter au moins deux classes.", None, None
 
-            # Lancement de la FDA
             lda_model = LDA(n_components=2)
             X_r = lda_model.fit_transform(X, y)
             fda_features = features
 
-            # Graphe de projection FDA
             fig = px.scatter(x=X_r[:, 0], y=X_r[:, 1], color=y.astype(str),
                              labels={'x': 'LD1', 'y': 'LD2'}, title="Projection FDA")
 
-            # Formulaire pour les prédictions
             form = html.Div([
                 html.Div([
                     html.Label(var),
@@ -129,9 +125,19 @@ def register_callbacks(app):
                 ]) for var in features
             ])
 
-            return fig, missing_info, form
+            # Mesure de corrélation + ANOVA
+            correlation_texts = []
+            for feature in features:
+                groups = [df[df[target] == cat][feature].dropna() for cat in df[target].unique()]
+                if all(len(g) > 1 for g in groups):
+                    f_stat, p_val = f_oneway(*groups)
+                    correlation_texts.append(html.Div(f"{feature} : F = {f_stat:.3f}, p = {p_val:.4f}"))
+                else:
+                    correlation_texts.append(html.Div(f"{feature} : Pas assez de données pour ANOVA."))
+
+            return fig, missing_info, form, correlation_texts
         except Exception as e:
-            return px.scatter(title="Erreur AFD"), f"Erreur : {str(e)}", None
+            return px.scatter(title="Erreur AFD"), f"Erreur : {str(e)}", None, None
 
     @app.callback(
         [Output('prediction-output', 'children'),
@@ -155,11 +161,8 @@ def register_callbacks(app):
             classes = lda_model.classes_
             prediction = classes[np.argmax(probs)]
 
-            # Texte de prédiction
-            text = f"✅ Prédiction : {prediction} \n\nProbabilités : " + \
-                ', '.join([f"{c} = {p:.2f}" for c, p in zip(classes, probs)])
+            text = f"✅ Prédiction : {prediction} \n\nProbabilités : " + ', '.join([f"{c} = {p:.2f}" for c, p in zip(classes, probs)])
 
-            # Graphe de projection avec point ajouté
             new_proj = lda_model.transform(new_point)
             X_proj = lda_model.transform(X)
             fig = px.scatter(x=X_proj[:, 0], y=X_proj[:, 1], color=y.astype(str),
