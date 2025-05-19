@@ -6,7 +6,7 @@ Cette application permet de réaliser une **Analyse Factorielle Discriminante (F
 
 ## 🚀 Fonctionnalités
 
-- ✅ **Upload de données** (au format `.csv` ou `.xlsx`)
+- ✅ **Upload de données** (au format `.csv`)
 - ✅ **Sélection dynamique** de la variable cible (catégorielle) et des variables explicatives (numériques)
 - ✅ **Vérification automatique** des types de données (cible qualitative, explicatives quantitatives)
 - ✅ **Analyse FDA** avec visualisation des composantes discriminantes (LD1, LD2)
