@@ -13,9 +13,23 @@ Cette application permet de réaliser une **Analyse Factorielle Discriminante (F
 - ✅ **Prédiction supervisée** d’un nouvel individu via formulaire
 - ✅ **Affichage des probabilités** de prédiction
 - ✅ **Détection des valeurs manquantes** dans les variables sélectionnées
-
 ---
 
 ## 📁 Structure du projet
 
-﻿# Projet_Dash
+Projet_Dash/
+├── assets/                     # Fichiers CSS, logos, etc.
+├── pages/                      # Pages modulaires de l'application Dash
+│   ├── __pycache__/           # Cache Python
+│   ├── about.py               # Page "À propos"
+│   ├── descriptive_stats.py   # Statistiques descriptives
+│   ├── fda.py                 # Analyse discriminante
+│   ├── home.py                # Page d'accueil
+│   ├── upload.py              # Chargement de fichiers
+│   └── visualisation.py       # Graphiques interactifs
+├── app.py                     # Lancement principal de l'application
+├── Procfile                   # Fichier pour déploiement (Heroku/Render)
+├── README.md                  # Ce fichier
+├── requirements.txt           # Dépendances Python
+└── .gitignore                 # Fichiers à exclure du dépôt
+
