@@ -1,0 +1,55 @@
+.dash-table-container .dash-spreadsheet-container {
+    overflow-x: auto;
+    max-height: 500px;
+    overflow-y: auto;
+    border-radius: 5px;
+    border: 1px solid #e0e0e0; /* Bordure plus claire */
+    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05); /* Légère ombre */
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner th {
+    background-color: #f5f5f5; /* Gris clair pour l'en-tête */
+    color: #333; /* Texte plus foncé */
+    font-weight: 600; /* Légèrement plus gras */
+    text-align: left; /* Alignement à gauche par défaut */
+    border-bottom: 2px solid #ddd; /* Bordure inférieure plus visible */
+    padding: 12px 15px; /* Espacement intérieur */
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td {
+    padding: 12px 15px;
+    border-bottom: 1px solid #eee; /* Bordure inférieure légère */
+    font-size: 14px;
+    text-align: left;
+    min-width: 100px;
+    max-width: 200px;
+    white-space: normal;
+    height: auto;
+    background-color: white;
+    color: #555; /* Texte un peu moins noir */
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:last-child td {
+    border-bottom: none; /* Supprimer la bordure du bas de la dernière ligne */
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:nth-child(odd) td {
+    background-color: #fff; /* Fond blanc même pour les lignes impaires */
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr:hover td {
+    background-color: #f9f9f9; /* Léger gris au survol */
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner tr.dash-row-selected td {
+    background-color: #e7f2ff; /* Bleu clair pour la sélection */
+    border: 1px solid #007bff;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td.numeric {
+    text-align: right;
+}
+
+.dash-table-container .dash-spreadsheet-container .dash-spreadsheet-inner td.boolean {
+    text-align: center;
+}
